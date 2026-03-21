@@ -1,17 +1,56 @@
-# calendar_app
+# CalendarApp 📅
 
-A new Flutter project.
+A cross-platform calendar app built with Flutter, available on Android and Windows.
+Create events, set reminders, and manage your schedule with a minimal dark aesthetic.
 
-## Getting Started
+![Flutter](https://img.shields.io/badge/Flutter-3.41.5-blue)
+![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Windows-green)
 
-This project is a starting point for a Flutter application.
+<img width="1254" height="700" alt="image" src="https://github.com/user-attachments/assets/acf39c21-db48-4ca7-9326-72c439d81543" />
 
-A few resources to get you started if this is your first Flutter project:
+<img width="1258" height="704" alt="image" src="https://github.com/user-attachments/assets/45ad52bb-d8ee-45e0-9577-7b6de88395f7" />
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Features
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- 📅 Monthly, 2-week and weekly calendar views
+- ➕ Create and edit events
+- 🎨 Color coded events
+- ⏰ Reminder notifications (Android)
+- 💾 Fully local storage
+- 🗓️ Date and time picker
+
+## Setup
+
+1. Clone the repo
+2. Install dependencies:
+```bash
+flutter pub get
+```
+3. Run:
+```bash
+flutter run
+```
+
+## Build
+
+**Android APK:**
+```bash
+flutter build apk --release
+```
+
+**Windows EXE:**
+```bash
+flutter build windows
+```
+
+## Tech Stack
+
+- Flutter / Dart
+- table_calendar
+- shared_preferences
+- intl
+- flutter_local_notifications (Android)
+
+## Version
+
+Current: 1.0.0
