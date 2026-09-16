@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'dart:convert';
 
 Future<void> initNotifications() async {}
@@ -51,8 +52,22 @@ const kSurface = Color(0xFF161616);
 const kBorder = Color(0xFF252525);
 const kText = Color(0xFFE8E2D9);
 const kMuted = Color(0xFF666666);
-const kAccent = Color(0xFFC8F060);
+const defaultAccent = Color(0xFFC8F060);
+final ValueNotifier<Color> kAccentNotifier = ValueNotifier<Color>(defaultAccent);
+Color get kAccent => kAccentNotifier.value;
 const kAccent2 = Color(0xFFF0A860);
+
+Future<void> loadAccent() async {
+  final prefs = await SharedPreferences.getInstance();
+  final value = prefs.getInt('accent_color');
+  if (value != null) kAccentNotifier.value = Color(value);
+}
+
+Future<void> setAccent(Color color) async {
+  kAccentNotifier.value = color;
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt('accent_color', color.value);
+}
 
 const eventColors = {
   'green': Color(0xFFC8F060),
@@ -66,6 +81,7 @@ const eventColors = {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initNotifications();
+  await loadAccent();
   runApp(const CalendarApp());
 }
 
@@ -74,15 +90,18 @@ class CalendarApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Calendar',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: kBg,
-        colorScheme: const ColorScheme.dark(primary: kAccent, surface: kSurface),
-        fontFamily: 'monospace',
+    return ValueListenableBuilder<Color>(
+      valueListenable: kAccentNotifier,
+      builder: (context, accent, _) => MaterialApp(
+        title: 'Calendar',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          scaffoldBackgroundColor: kBg,
+          colorScheme: ColorScheme.dark(primary: accent, surface: kSurface),
+          fontFamily: 'monospace',
+        ),
+        home: const CalendarHome(),
       ),
-      home: const CalendarHome(),
     );
   }
 }
@@ -165,6 +184,38 @@ class _CalendarHomeState extends State<CalendarHome> {
     }
   }
 
+  void _openAccentPicker() {
+    Color pending = kAccent;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: kSurface,
+        title: const Text('Accent color', style: TextStyle(color: kText)),
+        content: SingleChildScrollView(
+          child: ColorPicker(
+            pickerColor: pending,
+            onColorChanged: (color) => pending = color,
+            enableAlpha: false,
+            labelTypes: const [],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              setAccent(pending);
+              Navigator.of(context).pop();
+            },
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _cycleFormat() {
     setState(() {
       switch (calFormat) {
@@ -189,10 +240,15 @@ class _CalendarHomeState extends State<CalendarHome> {
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
               child: Row(
                 children: [
-                  const Text('CALENDAR', style: TextStyle(fontSize: 11, letterSpacing: 6, color: kAccent)),
+                  Text('CALENDAR', style: TextStyle(fontSize: 11, letterSpacing: 6, color: kAccent)),
                   const Spacer(),
                   Text(DateFormat('MMMM yyyy').format(focusedDay).toUpperCase(),
                     style: const TextStyle(fontSize: 10, color: kMuted, letterSpacing: 2)),
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: _openAccentPicker,
+                    child: const Icon(Icons.palette_outlined, color: kMuted, size: 18),
+                  ),
                 ],
               ),
             ),
@@ -219,7 +275,7 @@ class _CalendarHomeState extends State<CalendarHome> {
                 });
               },
               onPageChanged: (focused) => setState(() => focusedDay = focused),
-              calendarStyle: const CalendarStyle(
+              calendarStyle: CalendarStyle(
                 outsideDaysVisible: false,
                 defaultTextStyle: TextStyle(color: kText, fontSize: 13, fontFamily: 'monospace'),
                 weekendTextStyle: TextStyle(color: kMuted, fontSize: 13, fontFamily: 'monospace'),
@@ -290,7 +346,7 @@ class _CalendarHomeState extends State<CalendarHome> {
                         borderRadius: BorderRadius.circular(4),
                         color: kAccent.withOpacity(0.05),
                       ),
-                      child: const Text('+ EVENT', style: TextStyle(fontSize: 10, color: kAccent, letterSpacing: 2)),
+                      child: Text('+ EVENT', style: TextStyle(fontSize: 10, color: kAccent, letterSpacing: 2)),
                     ),
                   ),
                 ],
@@ -444,7 +500,7 @@ class _EventEditPageState extends State<EventEditPage> {
                     child: const Icon(Icons.arrow_back, color: kMuted, size: 20),
                   ),
                   const SizedBox(width: 16),
-                  const Text('EVENT', style: TextStyle(fontSize: 11, letterSpacing: 4, color: kAccent)),
+                  Text('EVENT', style: TextStyle(fontSize: 11, letterSpacing: 4, color: kAccent)),
                   const Spacer(),
                   GestureDetector(
                     onTap: () {
@@ -492,7 +548,7 @@ class _EventEditPageState extends State<EventEditPage> {
                           lastDate: DateTime(2030),
                           builder: (_, child) => Theme(
                             data: ThemeData.dark().copyWith(
-                              colorScheme: const ColorScheme.dark(primary: kAccent, surface: kSurface),
+                              colorScheme: ColorScheme.dark(primary: kAccent, surface: kSurface),
                             ),
                             child: child!,
                           ),
@@ -512,7 +568,7 @@ class _EventEditPageState extends State<EventEditPage> {
                           initialTime: eventTime,
                           builder: (_, child) => Theme(
                             data: ThemeData.dark().copyWith(
-                              colorScheme: const ColorScheme.dark(primary: kAccent, surface: kSurface),
+                              colorScheme: ColorScheme.dark(primary: kAccent, surface: kSurface),
                             ),
                             child: child!,
                           ),
